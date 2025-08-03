@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   puppeteer-api:
     build: .
@@ -5,3 +7,9 @@ services:
     ports:
       - "3002:3002"
     restart: unless-stopped
+    networks:
+      - external_app_network
+networks:
+  external_app_network:
+    external: true
+    name: docker-group-vps_app_network
