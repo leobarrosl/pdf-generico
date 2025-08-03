@@ -1,15 +1,7 @@
-version: '3.8'
-
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  puppeteer-api:
+    build: .
+    container_name: pdfs-puppeteer-api
     ports:
       - "3002:3002"
-    environment:
-      - NODE_ENV=production
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
-    volumes:
-      - ./templates:/app/templates
-    user: "1000:1000"  # Usa o mesmo UID/GID do usuário host
+    restart: unless-stopped

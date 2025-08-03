@@ -27,12 +27,43 @@ export async function gerarPdfHandlebars({ setor, layout, dados }: DadosPdf): Pr
 
   const html = template({ ...dados, setor });
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
+  const browser = await puppeteer.launch({
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-gpu'
+    ],
+    headless: true
+  });
 
-  const pdf = await page.pdf({ format: 'A4' });
-  await browser.close();
+  try {
+    const page = await browser.newPage();
+    
+    // Configuração de ignorar erros HTTPS movida para a página
+    await page.setDefaultNavigationTimeout(60000);
+    await page.setJavaScriptEnabled(true);
+    
+    await page.setContent(html, { 
+      waitUntil: 'networkidle0'
+    });
 
-  return Buffer.from(pdf);
+    const pdf = await page.pdf({ 
+      format: 'A4'
+    });
+
+    return Buffer.from(pdf);
+  } catch (error) {
+    console.error('Erro durante a geração do PDF:', error);
+    throw new Error(`Falha na geração do PDF: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    if (browser && browser.process() != null) {
+      await browser.close().catch(e => console.error('Erro ao fechar o browser:', e));
+    }
+  }
 }
