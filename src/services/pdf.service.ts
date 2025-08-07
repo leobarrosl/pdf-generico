@@ -25,6 +25,11 @@ export async function gerarPdfHandlebars({ setor, layout, dados }: DadosPdf): Pr
   const templateFile = await readFile(templatePath, 'utf-8');
   const template = handlebars.compile(templateFile);
 
+  dados.anexos.forEach((anexo: any) => {
+    anexo.nomeArquivo = anexo.nomeArquivo.startsWith('http')
+      ? anexo.nomeArquivo
+      : `https://eelsoftwares.tech/tridigito/files/imagem/${anexo.nomeArquivo}`;
+  });
   const html = template({ ...dados, setor });
 
   const browser = await puppeteer.launch({
